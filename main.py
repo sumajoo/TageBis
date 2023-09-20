@@ -2,25 +2,28 @@ import streamlit as st
 import datetime
 
 # Header
-st.title("Exam Countdown")
+st.title("Anki Countdown")
 
 # Subheader
-st.caption("This is a simple countdown to my exam. It calculates how many days I have left to my exam and how many days I have left to finish my Anki cards. It also calculates how many days I have left to study for my exam without having to do Anki cards.")
+st.caption("Anki Countdown hilft dir, deine Karten bis zur Prüfung zu beenden. Gib einfach die Daten ein und schon kannst du loslegen.")
 
-# Exam date
-examdate = datetime.date(2023, 9, 27)
+# Exam date input on sidebar
+examdate = st.sidebar.date_input("Prüfungs Datum", datetime.date(2023, 9, 26))
 
-# Start Date
-startdate = datetime.date(2023, 7, 26)
+# Start Date input on sidebar
+startdate = st.sidebar.date_input("Lernstart", datetime.date(2023, 7, 27))
 
-# Total cards
-total_cards = 3772
+# Total cards input on sidebar
+total_cards = st.sidebar.number_input("Gesamte Karten", 0, 10000, 3821)
 
 # Cards left input on sidebar
-cards_left = st.sidebar.number_input("Cards left", 0, total_cards, total_cards)
+cards_left = st.sidebar.number_input("Übrige Karten", 0, total_cards, 384)
 
-# Cards per day
-cards_per_day = 79
+# How many days buffer input on sidebar
+days_buffer = st.sidebar.number_input("Puffer Tage", 0, 100, 2)
+
+# Free days per week input on sidebar
+free_days_per_week = st.sidebar.number_input("Freie Tage pro Woche", 0, 7, 0)
 
 # Days left to exam
 days_left = examdate - datetime.date.today()
@@ -28,23 +31,20 @@ days_left = examdate - datetime.date.today()
 # Cards done
 cards_done = total_cards - cards_left
 
-# days till cards finished
-days_till_cards_finished = cards_left / cards_per_day
-
 # free days left
-free_days_left = days_left.days - days_till_cards_finished
+free_days_left = (days_left.days / 7) * free_days_per_week
 
-# days just for reviews
-days_just_for_reviews = (free_days_left / 2) - 1
+# cards per day
+cards_per_day = cards_left / (days_left.days - free_days_left)
 
-# days completely free
-days_completely_free = (free_days_left - days_just_for_reviews) - 2 # minus 2 weil drüber minus 1
+# days till cards finished
+days_till_cards_finished = cards_left / cards_per_day + free_days_left
 
 # main view
 col1, col2, col3 = st.columns(3)
-col1.metric("Days left", days_left.days)
-col2.metric("finished in", round(days_till_cards_finished, 2))
-col3.metric("free Days", round(days_completely_free, 2))
+col1.metric("Tage bis zur Prüfung", days_left.days)
+col2.metric("Karten pro Tag", round(cards_per_day, 2))
+col3.metric("übrige freie Tage", round(free_days_left, 2))
 
 st.divider()
 
@@ -52,11 +52,7 @@ st.divider()
 col1, col2 = st.columns(2)
 
 with col1:
-    st.write("Days left to exam: ", days_left.days)
-    st.write("Cards done: ", cards_done)
-    st.write("Days till cards finished: ", round(days_till_cards_finished, 2))
+    st.write("fertige Karten: ", cards_done)
 
 with col2:
-    st.write("Free days left: ", round(free_days_left, 2))
-    st.write("Days just for reviews: ", round(days_just_for_reviews, 2))
-    st.write("Days completely free: ", round(days_completely_free, 2))
+    st.write("übrige freie Tage: ", round(free_days_left, 2))
